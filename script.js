@@ -1,9 +1,11 @@
 //_________________________________________________________Setup________________________________________
 const canvas = document.querySelector('canvas');
+const start_screen = document.getElementById("start-button")
+const levels = document.getElementById('levels')
 const ctx = canvas.getContext('2d');
 
-canvas.width = 800
-canvas.height = 500
+canvas.width = innerWidth
+canvas.height = innerHeight
 
 let score = 0
 let gameFrame = 0
@@ -11,6 +13,8 @@ ctx.font = '50px Georgia'
 
 sky_bg = new Image()
 sky_bg.src = "planes/sky_background_mountains.png"
+
+
 
 
 //___________________________________________________________End Of Setup____________________________________________
@@ -28,6 +32,7 @@ canvas.addEventListener('mousedown', function(event){
     mouse.click = true
     mouse.x = event.x - canvasPosition.left
     mouse.y = event.y - canvasPosition.top
+    console.log(mouse.x, mouse.y)
 
 })
 
@@ -54,17 +59,19 @@ class Player{
         const dx = this.x - mouse.x
         const dy = this.y - mouse.y
         if (mouse.x != this.x){
-            if (mouse.x > this.x){
-                leftPlayer.src = "planes/plane_1_pink.png"
-            }
-            else if (mouse.x < this.x){
-                leftPlayer.src = "planes/plane_left.png"
-            }
             this.x -= dx/30
         }
 
         if (mouse.y != this.y){
             this.y -= dy/30
+        }
+
+        if (mouse.x > this.x){
+            leftPlayer.src = "planes/plane_1_pink.png"
+        }
+        
+        else if (mouse.x < this.x){
+            leftPlayer.src = "planes/plane_left.png"
         }
     }
 
@@ -76,12 +83,13 @@ class Player{
             ctx.beginPath()
             ctx.moveTo(this.x, this.y)
             ctx.lineTo(mouse.x, mouse.y)
+            ctx.closePath()
             ctx.stroke()
         }
 //Circle
         ctx.fillStyle = "red"
         ctx.beginPath()
-        ctx.drawImage(leftPlayer,this.x, this.y, 100, 100);
+        ctx.drawImage(leftPlayer, this.x, this.y, 100, 100);
         ctx.fill()
         ctx.closePath()
 
@@ -100,6 +108,8 @@ const bubblesArray = []
 let blocked_gathered = document.createElement("audio")
 blocked_gathered.src = "sound/block-gathered.wav"
 
+let level_complete = document.createElement("audio")
+level_complete.src - "sound/level-complete.mp3"
 class Bubble {
     constructor(){
         this.x = Math.random() * canvas.width
@@ -147,6 +157,10 @@ function handleBubbles(){
             score++
             bubblesArray[i].count = true
             bubblesArray.splice(i, 1)
+
+            if (score % 25 == 0){
+                level_complete.play()
+            }
             
         }
 
@@ -194,8 +208,7 @@ class Enemies{
 
 
 function handleEnemies(){
-    if (gameFrame % 300 == 0){
-        console.log("enemy")
+    if (gameFrame % 200 == 0){
         enemyArray.push(new Enemies())
     }
 
@@ -203,7 +216,7 @@ function handleEnemies(){
         enemyArray[i].update()
         enemyArray[i].draw()
         
-        if(enemyArray[i].x > 800){
+        if(enemyArray[i].x > canvas.width){
             enemyArray.splice(i, 1)
 
         }
@@ -221,9 +234,12 @@ function handleEnemies(){
 
 //__________________________________________________Animation loop______________________________________________________
 function animate(){
+    start_screen.style.display = "none"
+    canvas.style.display = "block"
+
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    ctx.drawImage(sky_bg, 0, 0)
+    ctx.drawImage(sky_bg, 0, 0, canvas.width, canvas.height)
     handleEnemies();
     handleBubbles();
     player.update();
@@ -233,9 +249,56 @@ function animate(){
     ctx.fillText("Score: " + score, 10, 50)
 
     gameFrame++
+    
+    if (score % 25 != 0){
+        requestAnimationFrame(animate)  
+    }
 
-    requestAnimationFrame(animate)
+    else{
+        console.log("you win")
+        ctx.fillText("YOu dadsffdsa", 100, 50)
+        setTimeout(startGame(), 10000);
+    }
 }
 
-animate()
+function startGame(){
+    canvas.style.display = "none"
+    start_screen.style.display = "none"
+    levels.style.display = "block"
+    
+}
+
+function Level1(){
+    console.log('level 1')
+    score = 1
+    levels.style.display = "none"
+    canvas.style.display = 'block'
+    animate()
+}
+
+function Level2(){
+    console.log('level 2')
+    if (score >= 25){
+        levels.style.display = "none"
+        canvas.style.display = 'block'
+        score = 26
+        animate()
+    }
+}
+
+function Level3(){
+    console.log('level 3')
+    if (score >= 50){
+        levels.style.display = "none"
+        canvas.style.display = 'block'
+        score = 51
+        animate()
+    }
+}
+
+function BacktoStart(){
+    start_screen.style.display = "block"
+    levels.style.display = 'none'
+}
+
 //________________________________________________________________End of Animation Loop___________________________________________-
